@@ -1,0 +1,7 @@
+https://mcauto.github.io/back-end/2018/10/11/how-to-use-flask-restful/
+https://beomi.github.io/2017/10/20/DB-To-SQLAlchemy-Model/
+https://nirsa.tistory.com/76
+https://github.com/mcauto/Flask-Restplus-example
+
+https://pypi.org/project/flask-sqlacodegen/
+

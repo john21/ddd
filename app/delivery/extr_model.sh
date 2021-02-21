@@ -1,0 +1,1 @@
+flask-sqlacodegen "mysql+pymysql://ddd:delivery@127.0.0.1/data_delivery" --flask --tables delivery,data,service,job,delivery_log,notification,holiday_info,job_delivery,notification_log,rm_contact > models.py 
