@@ -18,10 +18,11 @@ is_weekday = validate.Range([0, 6])
 is_monthday = validate.Range([1, 31])
 is_treatst = validate.OneOf(['NONE', 'OP_NOTI', 'TREAT_START', 'TREAT_WITHHOLD', 'TREAT_END', 'DONE'])
 
+
 class Datum(db.Model):
     __tablename__ = 'data'
     __table_args__ = (
-        db.Index('data_type_data_value', 'data_type', 'data_value'),
+        db.Index('data_type_data_value', 'data_type', 'data_value')
     )
 
     data_id = db.Column(db.Integer, primary_key=True, info='데이터 시퀀스')
@@ -29,6 +30,12 @@ class Datum(db.Model):
     data_value = db.Column(db.String(250), nullable=False, info='데이터 경로')
     data_name = db.Column(db.String(100), info='데이터 별칭')
     last_upd_dtm = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue(), info='최종 변경 시간')
+
+    def __init__(self, data_type, data_value, data_name, **kwargs):
+        self.data_type = data_type
+        self.data_value = data_value
+        self.data_name = data_name
+        super(Todo, self).__init__(**kwargs)
 
 class DatumSchema(Schema):
 
@@ -51,7 +58,6 @@ class DatumSchema(Schema):
         type_ = 'datum'
 
 
-
 class Delivery(db.Model):
     __tablename__ = 'delivery'
 
@@ -71,11 +77,11 @@ class Delivery(db.Model):
     extra3 = db.Column(db.String(150), info='import mapping용 부가속성3')
     last_upd_dtm = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue(), info='최종 갱신 일시')
 
-    data = db.relationship('Datum', primaryjoin='Delivery.data_id == Datum.data_id', backref='deliveries')
-    svc = db.relationship('Service', primaryjoin='Delivery.svc_id == Service.svc_id', backref='deliveries')
+    data = db.relationship('Datum', primaryjoin='Delivery.data_id == Datum.data_id', backref='delivery')
+    svc = db.relationship('Service', primaryjoin='Delivery.svc_id == Service.svc_id', backref='delivery')
 
+class DeliverySchema(Schema):
 
- class DeliverySchema(Schema):
     dlvr_id = fields.Integer(dump_only=True)
     svc_id = fields.Integer()
     data_id = fields.Integer()
@@ -123,14 +129,14 @@ class DeliveryLog(db.Model):
 
 
 class DeliveryLogSchema(Schema):
-    dlvrlog_id = fields(Integer, dump_only=True)
-    dlvr_id = fields(Integer)
-    dlvr_dt = fields(String(validate=validate.Length(min=8,max=8)))
-    dlvr_status = fields(String)
-    last_yn = fields(String(validate=is_yn))
-    success_yn = fields(String(validate=is_yn))
-    treat_st = fields(String(validate=is_treatst))
-    treat_noti = fields(String(validate=is_treatst))
+    dlvrlog_id = fields.Integer(dump_only=True)
+    dlvr_id = fields.Integer()
+    dlvr_dt = fields.String(validate=validate.Length(min=8,max=8))
+    dlvr_status = fields.String()
+    last_yn = fields.String(validate=is_yn)
+    success_yn = fields.String(validate=is_yn)
+    treat_st = fields.String(validate=is_treatst)
+    treat_noti = fields.String(validate=is_treatst)
     log_dtm = fields.DateTime(format='%Y-%m-%d %H:%M:%S')
     last_upd_dtm = fields.DateTime(format='%Y-%m-%d %H:%M:%S')
 
@@ -157,6 +163,27 @@ class HolidayInfo(db.Model):
     dt_desc = db.Column(db.String(50))
     lastupdate_dtm = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue())
 
+class HolidayInfoSchema(Schema):
+
+    idx = fields.Integer(dump_only=True)
+    dt = fields.Date(format='%Y-%m-%d')
+    holyday_yn = fields.String(validate=is_yn)
+    lunar_yn = fields.String(validate=is_yn)
+    happyfriday_yn = fields.String(validate=is_yn)
+    dt_desc = fields.String()
+    lastupdate_dtm = fields.DateTime(format='%Y-%m-%d %H:%M:%S')
+
+    #self links
+    def get_top_level_links(self, data, many):
+        if many:
+            self_link = "/api/holiday_info"
+        else:
+            self_link = "/api/holiday_info/{}".format(data['idx'])
+        return {'self': self_link}
+
+    class Meta:
+        type_ = 'holiday_info'
+
 
 
 class Job(db.Model):
@@ -174,7 +201,27 @@ class Job(db.Model):
     rm_name = db.Column(db.String(50))
     last_upd_dtm = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue(), info='최종 변경 일시')
 
+class JobSchema(Schema):
 
+    job_id = fields.Integer(dump_only=True)
+    job_mode = fields.String(validate=not_blank)
+    job_name = fields.String(validate=not_blank)
+    job_type = fields.String()
+    job_server = fields.String()
+    rm_org = fields.String()
+    rm_name = fields.String()
+    last_upd_dtm = fields.DateTime(format='%Y-%m-%d %H:%M:%S')
+
+    #self links
+    def get_top_level_links(self, data, many):
+        if many:
+            self_link = "/api/job"
+        else:
+            self_link = "/api/job/{}".format(data['job_id'])
+        return {'self': self_link}
+
+    class Meta:
+        type_ = 'job'
 
 class JobDelivery(db.Model):
     __tablename__ = 'job_delivery'
