@@ -4,5 +4,3 @@ https://nirsa.tistory.com/76
 https://github.com/mcauto/Flask-Restplus-example
 
 https://pypi.org/project/flask-sqlacodegen/
-
-test
